@@ -16,7 +16,7 @@
                 <input type="date" name="fecha_toma" class="form-control" required>
             </div>
             <div class="col-md-3">
-                <label class="form-label text-muted small fw-bold">FECHA RECEPCCIÓN</label>
+                <label class="form-label text-muted small fw-bold">FECHA RECEPCIÓN</label>
                 <input type="date" name="fecha_recepcion" class="form-control" required>
             </div>
             <div class="col-md-3">
@@ -68,7 +68,7 @@
 
 <!-- BÚSQUEDA DE EXAMEN (TABLA TIPO CLÍNICA) -->
 <div class="card">
-    <div class="card-header bg-secondary text-center py-3">
+    <div class="card-header bg-secondary text-center py-3 text-white fw-bold">
         BÚSQUEDA DE EXAMEN: (FILTROS POR CADA SLOT)
     </div>
     <div class="card-body p-0 bg-white">
@@ -77,12 +77,13 @@
                 <table class="table table-hover align-middle text-center mb-0">
                     <thead>
                         <tr>
-                            <th style="width: 15%;">N° CORRELATIVO</th>
-                            <th style="width: 15%;">FECHA TOMA</th>
-                            <th style="width: 25%;">NOMBRE PACIENTE</th>
-                            <th style="width: 15%;">RUT</th>
-                            <th style="width: 20%;">ESTADO</th>
-                            <th style="width: 10%;">ACCION</th>
+                            <th style="width: 10%;">N° CORRELATIVO</th>
+                            <th style="width: 12%;">FECHA TOMA</th>
+                            <th style="width: 20%;">NOMBRE PACIENTE</th>
+                            <th style="width: 13%;">RUT</th>
+                            <th style="width: 18%;">PATÓLOGO</th> <!-- COLUMNA AGREGADA -->
+                            <th style="width: 17%;">ESTADO</th>
+                            <th style="width: 10%;">ACCIÓN</th>
                         </tr>
                         <!-- Fila de Slots -->
                         <tr class="bg-light">
@@ -90,6 +91,19 @@
                             <th class="p-2"><input type="date" name="fecha_toma" value="{{ request('fecha_toma') }}" class="form-control form-control-sm"></th>
                             <th class="p-2"><input type="text" name="paciente" value="{{ request('paciente') }}" class="form-control form-control-sm"></th>
                             <th class="p-2"><input type="text" name="rut" value="{{ request('rut') }}" class="form-control form-control-sm"></th>
+                            
+                            <!-- FILTRO SLOT PATÓLOGO -->
+                            <th class="p-2">
+                                <select name="patologo_id" class="form-select form-select-sm">
+                                    <option value="">Todos</option>
+                                    @foreach($patologos as $p)
+                                        <option value="{{ $p->id }}" {{ request('patologo_id') == $p->id ? 'selected' : '' }}>
+                                            {{ $p->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </th>
+
                             <th class="p-2">
                                 <select name="estado" class="form-select form-select-sm">
                                     <option value="">Todos</option>
@@ -109,6 +123,18 @@
                             <td>{{ \Carbon\Carbon::parse($ex->fecha_toma)->format('d/m/Y') }}</td>
                             <td class="fw-semibold text-dark">{{ $ex->paciente_nombre }}</td>
                             <td><code>{{ $ex->paciente_rut }}</code></td>
+                            
+                            <!-- DATO PATÓLOGO ASIGNADO -->
+                            <td>
+                                @if($ex->patologo)
+                                    <span class="badge bg-light text-dark border">
+                                        {{ $ex->patologo->name }}
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary opacity-50">Sin asignar</span>
+                                @endif
+                            </td>
+
                             <td>
                                 @if($ex->estado == 'EN ESPERA INFORME COMPLEMENTARIO')
                                     <span class="badge-estado estado-espera">EN ESPERA INFORME COMPLEMENTARIO</span>
@@ -126,7 +152,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-muted py-5">No existen registros de exámenes.</td>
+                            <td colspan="7" class="text-muted py-5">No existen registros de exámenes.</td>
                         </tr>
                         @endforelse
                     </tbody>

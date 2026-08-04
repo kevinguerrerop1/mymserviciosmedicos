@@ -28,11 +28,12 @@ class ExamenController extends Controller
         }
 
         // Filtros individuales por columna (Slot)
-        if ($request->filled('correlativo')) $query->where('numero_correlativo', 'LIKE', "%{$request->correlativo}%");
-        if ($request->filled('fecha_toma')) $query->whereDate('fecha_toma', $request->fecha_toma);
-        if ($request->filled('paciente')) $query->where('paciente_nombre', 'LIKE', "%{$request->paciente}%");
-        if ($request->filled('rut')) $query->where('paciente_rut', 'LIKE', "%{$request->rut}%");
-        if ($request->filled('estado')) $query->where('estado', $request->estado);
+        if ($request->filled('correlativo'))  $query->where('numero_correlativo', 'LIKE', "%{$request->correlativo}%");
+        if ($request->filled('fecha_toma'))   $query->whereDate('fecha_toma', $request->fecha_toma);
+        if ($request->filled('paciente'))     $query->where('paciente_nombre', 'LIKE', "%{$request->paciente}%");
+        if ($request->filled('rut'))          $query->where('paciente_rut', 'LIKE', "%{$request->rut}%");
+        if ($request->filled('patologo_id')) $query->where('patologo_id', $request->patologo_id); // <--- AGREGAR ESTA LÍNEA
+        if ($request->filled('estado'))       $query->where('estado', $request->estado);
 
         $examenes = $query->latest()->get();
         $laboratorios = Laboratorio::all();
@@ -46,40 +47,41 @@ class ExamenController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'fecha_toma' => 'required|date',
-            'fecha_recepcion' => 'required|date',
-            'paciente_nombre' => 'required|string|max:255',
-            'paciente_rut' => 'required|string|max:20',
+            'fecha_toma'         => 'required|date',
+            'fecha_recepcion'    => 'required|date',
+            'paciente_nombre'    => 'required|string|max:255',
+            'paciente_rut'       => 'required|string|max:20',
             'medico_solicitante' => 'required|string|max:255',
-            'tipo_examen_id' => 'required|exists:tipo_examenes,id',
-            'laboratorio_id' => 'required|exists:laboratorios,id',
+            'tipo_examen_id'     => 'required|exists:tipo_examenes,id',
+            'laboratorio_id'     => 'required|exists:laboratorios,id',
         ]);
 
-        // Ejecutamos dentro de una transacción para evitar inconsistencias
+        // Ejecutamos dentro de una transacción para garantizar integridad de datos
         $examen = DB::transaction(function () use ($request) {
             
             // Obtener el siguiente ID que asignará la BD
             $siguienteId = (Examen::max('id') ?? 0) + 1;
 
-            // Crear el examen asignando directamente el ID como correlativo
+            // 1. Crear el examen asignando directamente el ID como correlativo
             $nuevoExamen = Examen::create([
                 'numero_correlativo' => $siguienteId,
-                'fecha_toma'        => $request->fecha_toma,
-                'fecha_recepcion'   => $request->fecha_recepcion,
-                'paciente_nombre'   => $request->paciente_nombre,
-                'paciente_rut'      => $request->paciente_rut,
+                'fecha_toma'         => $request->fecha_toma,
+                'fecha_recepcion'    => $request->fecha_recepcion,
+                'paciente_nombre'    => $request->paciente_nombre,
+                'paciente_rut'       => $request->paciente_rut,
                 'medico_solicitante' => $request->medico_solicitante,
-                'tipo_examen_id'    => $request->tipo_examen_id,
-                'laboratorio_id'    => $request->laboratorio_id,
-                'patologo_id'       => $request->patologo_id ?? null,
-                'estado'            => 'PENDIENTE',
+                'tipo_examen_id'     => $request->tipo_examen_id,
+                'laboratorio_id'     => $request->laboratorio_id,
+                'patologo_id'        => $request->patologo_id ?? null,
+                'estado'             => 'PENDIENTE',
             ]);
 
-            // Registro de Trazabilidad Inicial
+            // 2. Registro inicial automático en la trazabilidad
             ComentarioExamen::create([
-                'examen_id'  => $nuevoExamen->id,
+                'examen_id'  => $nuevoExamen->id, // <--- Corregido: Usamos la variable $nuevoExamen
                 'user_id'    => auth()->id(),
-                'comentario' => "📥 Registro de examen creado e ingresado al sistema de trazabilidad (Correlativo #{$nuevoExamen->numero_correlativo})."
+                'comentario' => "📥 Registro de examen creado e ingresado al sistema de trazabilidad.",
+                'tipo'       => 'sistema',
             ]);
 
             return $nuevoExamen;
@@ -101,16 +103,30 @@ class ExamenController extends Controller
     {
         $this->validarAcceso($examen);
 
+        // 1. Bloqueo si el examen ya está en estado finalizado
+        if (in_array($examen->estado, ['INFORMADO', 'INFORMADO RESULTADO CRÍTICO'])) {
+            return redirect()->back()->with('error', 'Este examen ya se encuentra finalizado e informado, por lo que no se puede modificar.');
+        }
+
+        // 2. Validación formal del request
         $request->validate([
-            'estado' => 'required|in:PENDIENTE,EN ESPERA INFORME COMPLEMENTARIO,INFORMADO RESULTADO CRÍTICO,INFORMADO',
+            'estado'          => 'required|in:PENDIENTE,EN ESPERA INFORME COMPLEMENTARIO,INFORMADO RESULTADO CRÍTICO,INFORMADO',
             'archivo_informe' => 'nullable|mimes:pdf|max:10240',
-            'imagenes.*' => 'nullable|image|max:5120'
+            'imagenes.*'      => 'nullable|image|max:5120'
         ]);
 
-        // 1. Guardamos el estado anterior para comparar
-        $estadoAnterior = $examen->estado;
+        // 3. Validación de regla de negocio: Requerir PDF para finalizar
+        $quiereFinalizar   = in_array($request->estado, ['INFORMADO', 'INFORMADO RESULTADO CRÍTICO']);
+        $tienePdfExistente = !empty($examen->archivo_informe);
+        $subiendoNuevoPdf  = $request->hasFile('archivo_informe');
 
-        $data = ['estado' => $request->estado];
+        if ($quiereFinalizar && !$tienePdfExistente && !$subiendoNuevoPdf) {
+            return redirect()->back()->with('error', 'No es posible cambiar el estado a INFORMADO sin adjuntar el informe diagnóstico en PDF.');
+        }
+
+        // Guardamos el estado anterior para comparar
+        $estadoAnterior = $examen->estado;
+        $data           = ['estado' => $request->estado];
 
         if ($request->filled('fecha_entrega')) {
             $data['fecha_entrega'] = $request->fecha_entrega;
@@ -118,9 +134,9 @@ class ExamenController extends Controller
 
         // Subida del PDF de Informe
         $informeSubido = false;
-        if ($request->hasFile('archivo_informe')) {
+        if ($subiendoNuevoPdf) {
             $data['archivo_informe'] = $request->file('archivo_informe')->store('informes');
-            $informeSubido = true;
+            $informeSubido          = true;
         }
 
         // Subida de Galería de imágenes
@@ -134,37 +150,40 @@ class ExamenController extends Controller
             $data['galeria_imagenes'] = $rutasImagenes;
         }
 
-        // Actualizamos el examen en base de datos
+        // Actualizamos el examen en la base de datos
         $examen->update($data);
 
         // -------------------------------------------------------------
-        // REGISTRO AUTOMÁTICO EN LA LÍNEA DE TIEMPO (TRAZABILIDAD)
+        // REGISTRO AUTOMÁTICO EN LA LÍNEA DE TIEMPO (TIPO: SISTEMA)
         // -------------------------------------------------------------
 
         // A) Registro por cambio de estado
         if ($estadoAnterior !== $request->estado) {
             \App\Models\ComentarioExamen::create([
-                'examen_id' => $examen->id,
-                'user_id'   => auth()->id(),
-                'comentario' => "🔄 Estado actualizado de '{$estadoAnterior}' a '{$request->estado}'."
+                'examen_id'  => $examen->id,
+                'user_id'    => auth()->id(),
+                'comentario' => "🔄 Estado actualizado de '{$estadoAnterior}' a '{$request->estado}'.",
+                'tipo'       => 'sistema',
             ]);
         }
 
         // B) Registro por subida de informe PDF
         if ($informeSubido) {
             \App\Models\ComentarioExamen::create([
-                'examen_id' => $examen->id,
-                'user_id'   => auth()->id(),
-                'comentario' => "📄 Se adjuntó el Informe Diagnóstico Oficial (PDF)."
+                'examen_id'  => $examen->id,
+                'user_id'    => auth()->id(),
+                'comentario' => "📄 Se adjuntó el Informe Diagnóstico Oficial (PDF).",
+                'tipo'       => 'sistema',
             ]);
         }
 
         // C) Registro por subida de imágenes
         if ($imagenesSubidas > 0) {
             \App\Models\ComentarioExamen::create([
-                'examen_id' => $examen->id,
-                'user_id'   => auth()->id(),
-                'comentario' => "📸 Se agregaron {$imagenesSubidas} nueva(s) imagen(es) al expediente."
+                'examen_id'  => $examen->id,
+                'user_id'    => auth()->id(),
+                'comentario' => "📸 Se agregaron {$imagenesSubidas} nueva(s) imagen(es) al expediente.",
+                'tipo'       => 'sistema',
             ]);
         }
 
@@ -186,5 +205,25 @@ class ExamenController extends Controller
         $user = Auth::user();
         if ($user->hasRole('patologo') && $examen->patologo_id !== $user->id) abort(403);
         if ($user->hasRole('laboratorio') && $examen->laboratorio_id !== $user->laboratorio_id) abort(403);
+    }
+
+    public function reabrir(Request $request, Examen $examen)
+    {
+        $request->validate([
+            'motivo' => 'required|string|min:10'
+        ]);
+
+        $estadoAnterior = $examen->estado;
+        $examen->update(['estado' => 'EN ESPERA INFORME COMPLEMENTARIO']);
+
+        // Registrar en la trazabilidad (línea de tiempo del sistema)
+        \App\Models\ComentarioExamen::create([
+            'examen_id'  => $examen->id,
+            'user_id'    => auth()->id(),
+            'comentario' => "🔓 EXPEDIENTE REABIERTO por Administrador. Estado devuelto a 'EN ESPERA INFORME COMPLEMENTARIO'. Motivo: {$request->motivo}",
+            'tipo'       => 'sistema',
+        ]);
+
+        return redirect()->back()->with('success', 'El expediente ha sido reabierto exitosamente.');
     }
 }

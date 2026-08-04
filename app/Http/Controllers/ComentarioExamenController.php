@@ -11,16 +11,17 @@ class ComentarioExamenController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'examen_id' => 'required|exists:examenes,id',
-            'comentario' => 'required|string'
+            'examen_id'  => 'required|exists:examenes,id',
+            'comentario' => 'required|string|max:1000',
         ]);
 
         ComentarioExamen::create([
-            'examen_id' => $request->examen_id,
-            'user_id' => Auth::id(),
-            'comentario' => $request->comentario
+            'examen_id'  => $request->examen_id,
+            'user_id'    => auth()->id(),
+            'comentario' => $request->comentario,
+            'tipo'       => 'nota', // <-- Forzamos que la observación del usuario sea de tipo 'nota'
         ]);
 
-        return redirect()->back()->with('success', 'Comentario agregado.');
+        return redirect()->back()->with('success', 'Comentario guardado exitosamente.');
     }
 }

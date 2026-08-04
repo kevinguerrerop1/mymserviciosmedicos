@@ -9,12 +9,19 @@ class Examen extends Model
     protected $table = 'examenes';
     
     protected $fillable = [
-        'numero_correlativo', 'fecha_toma', 'fecha_recepcion', 'fecha_entrega',
-        'paciente_nombre', 'paciente_rut', 'medico_solicitante',
-        'cantidad_muestras', 'numero_fragmentos', 'tincion_rutina', 'tecnicas_especiales',
-        'tipo_examen_id', 'laboratorio_id', 'patologo_id', 'estado',
-        'archivo_informe', 'galeria_imagenes'
-    ];
+    'numero_correlativo',
+    'fecha_toma',
+    'fecha_recepcion',
+    'paciente_nombre',
+    'paciente_rut',
+    'medico_solicitante',
+    'tipo_examen_id',
+    'laboratorio_id',
+    'patologo_id', // <--- Asegurar que esté en el fillable
+    'estado',
+    'archivo_informe',
+    'galeria_imagenes'
+];
 
     protected $casts = [
         'galeria_imagenes' => 'array',
