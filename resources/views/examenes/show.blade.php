@@ -1,6 +1,86 @@
 @extends('layouts.app')
 
 @section('content')
+
+<style>
+    .trazabilidad-card {
+        border-radius: 12px;
+        background: #ffffff;
+    }
+    
+    .timeline-track {
+        position: relative;
+        padding-left: 28px;
+    }
+    .timeline-track::before {
+        content: '';
+        position: absolute;
+        top: 14px;
+        bottom: 14px;
+        left: 13px;
+        width: 2px;
+        background: #e9ecef;
+    }
+    .timeline-step {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    .timeline-step:last-child {
+        padding-bottom: 0;
+    }
+    .timeline-icon {
+        position: absolute;
+        left: -28px;
+        top: 2px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        z-index: 2;
+        box-shadow: 0 0 0 4px #ffffff;
+    }
+    .timeline-icon-latest {
+        background-color: #0d6efd;
+        color: #ffffff;
+        box-shadow: 0 0 0 4px #ffffff, 0 0 0 6px rgba(13, 110, 253, 0.25);
+        animation: pulse-ring 2s infinite;
+    }
+    .timeline-icon-history {
+        background-color: #e9ecef;
+        color: #6c757d;
+    }
+    .timeline-content-card {
+        border-radius: 10px;
+        background-color: #f8f9fa;
+        border: 1px solid #edf2f7;
+        transition: all 0.2s ease-in-out;
+    }
+    .timeline-content-card:hover {
+        background-color: #ffffff;
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .timeline-step:first-child .timeline-content-card {
+        background-color: #f0f7ff;
+        border-color: #bae6fd;
+    }
+    @keyframes pulse-ring {
+        0% {
+            box-shadow: 0 0 0 4px #ffffff, 0 0 0 6px rgba(13, 110, 253, 0.3);
+        }
+        50% {
+            box-shadow: 0 0 0 4px #ffffff, 0 0 0 9px rgba(13, 110, 253, 0.1);
+        }
+        100% {
+            box-shadow: 0 0 0 4px #ffffff, 0 0 0 6px rgba(13, 110, 253, 0.3);
+        }
+    }
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div class="text-muted small fw-bold">📋 FICHA DE TRAZABILIDAD Y DIAGNÓSTICO PATOLÓGICO</div>
     <a href="{{ route('examenes.index') }}" class="btn btn-sm btn-outline-secondary">← Volver a Búsqueda</a>
@@ -189,52 +269,82 @@
 
     <!-- TARJETA PRINCIPAL: TRAZABILIDAD Y CAMBIOS DE ESTADO -->
     <div class="col-12">
-        <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
-            
-            <!-- CABECERA CON BOTÓN A MODAL -->
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
-                <div class="d-flex align-items-center">
-                    <span class="fs-5 me-2">📍</span>
-                    <h6 class="mb-0 fw-bold text-uppercase tracking-wide">Línea de Tiempo y Historial de Estado</h6>
+        <div class="card shadow-sm border-0 trazabilidad-card overflow-hidden">
+            <!-- CABECERA CON CONTRASTE ALTO -->
+            <div class="card-header bg-primary text-white py-3 px-4 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fs-5">📍</span>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-white text-uppercase tracking-wide" style="letter-spacing: 0.5px;">
+                            Trazabilidad e Historial de Estado
+                        </h6>
+                        <small class="text-white-50 d-block" style="font-size: 0.78rem;">
+                            Registro cronológico del flujo de ingreso y cambios del sistema
+                        </small>
+                    </div>
                 </div>
-
                 @php
                     $notasManuales = $examen->comentarios->where('tipo', 'nota');
+                    $eventosSistema = $examen->comentarios->where('tipo', 'sistema');
                 @endphp
-
-                <button type="button" class="btn btn-sm btn-light fw-bold text-primary shadow-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#modalNotasExamen">
-                    💬 Ver Comentarios / Notas
+                <!-- BOTÓN BLANCO LEGIBLE Y DESTACADO -->
+                <button type="button" class="btn btn-sm btn-light fw-bold text-primary shadow-sm rounded-pill px-3 py-1.5 d-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#modalNotasExamen">
+                    <span>💬 Ver Comentarios / Notas</span>
                     @if($notasManuales->count() > 0)
-                        <span class="badge bg-danger ms-1 rounded-circle">{{ $notasManuales->count() }}</span>
+                        <span class="badge bg-danger text-white rounded-pill ms-1" style="font-size: 0.75rem;">{{ $notasManuales->count() }}</span>
                     @endif
                 </button>
             </div>
-
             <!-- CUERPO: EVENTOS DE SISTEMA -->
-            <div class="card-body bg-white p-4">
-                <div class="timeline">
-                    @forelse($examen->comentarios->where('tipo', 'sistema') as $index => $hito)
-                        <div class="timeline-item">
-                            <div class="timeline-marker {{ $loop->first ? 'bg-success' : 'bg-primary' }}"></div>
-                            <div class="timeline-content">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold {{ $loop->first ? 'text-success' : 'text-primary' }}">
-                                        {{ $hito->user->name ?? 'Sistema' }}
-                                    </span>
-                                    <small class="text-muted fw-bold">
-                                        {{ $hito->created_at->format('d/m/Y H:i') }} hrs 
-                                        <span class="fw-normal">({{ $hito->created_at->diffForHumans() }})</span>
-                                    </small>
+            <div class="card-body p-4">
+                @if($eventosSistema->count() > 0)
+                    <div class="timeline-track">
+                        @foreach($eventosSistema as $hito)
+                            <div class="timeline-step">
+                                <!-- NODO DE HISTORIAL -->
+                                <div class="timeline-icon {{ $loop->first ? 'timeline-icon-latest' : 'timeline-icon-history' }}">
+                                    @if($loop->first)
+                                        ✓
+                                    @else
+                                        •
+                                    @endif
                                 </div>
-                                <p class="mb-0 text-dark small mt-1 fw-semibold">{{ $hito->comentario }}</p>
+                                <!-- TARJETA DEL HITO -->
+                                <div class="timeline-content-card p-3">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
+                                        
+                                        <!-- USUARIO / EMISOR -->
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge {{ $loop->first ? 'bg-primary text-white' : 'bg-secondary-subtle text-dark border' }} rounded-pill px-2.5 py-1 font-monospace fw-semibold" style="font-size: 0.75rem;">
+                                                👤 {{ $hito->user->name ?? 'Sistema' }}
+                                            </span>
+                                            @if($loop->first)
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 0.7rem;">
+                                                    Estado Actual
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <!-- TIMESTAMP -->
+                                        <div class="text-muted d-flex align-items-center gap-1" style="font-size: 0.78rem;">
+                                            <span class="fw-bold text-dark">{{ $hito->created_at->format('d/m/Y') }}</span>
+                                            <span>a las</span>
+                                            <span class="fw-bold text-dark">{{ $hito->created_at->format('H:i') }} hrs</span>
+                                            <span class="text-muted ps-1">({{ $hito->created_at->diffForHumans() }})</span>
+                                        </div>
+                                    </div>
+                                    <!-- DESCRIPCIÓN DEL EVENTO -->
+                                    <p class="mb-0 text-dark font-semibold text-break mt-1" style="line-height: 1.45; font-size: 0.88rem;">
+                                        {{ $hito->comentario }}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    @empty
-                        <div class="text-center text-muted py-3">
-                            <small>No hay registros de cambios de estado ni trazabilidad aún.</small>
-                        </div>
-                    @endforelse
-                </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center text-muted py-4">
+                        <p class="mb-0 small fw-semibold">No hay registros de cambios de estado ni trazabilidad aún.</p>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

@@ -146,11 +146,13 @@
 </head>
 <body>
     <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm py-2">
             <div class="container">
-                <a class="navbar-brand fw-bold" href="{{ url('/') }}">
-                    {{ config('app.name', 'Laravel') }}
+                <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ url('/') }}">
+                    <span>🏥</span>
+                    <span>{{ config('app.name', 'Laravel') }}</span>
                 </a>
+                
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -160,7 +162,9 @@
                     <ul class="navbar-nav me-auto">
                         @auth
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('examenes.index') }}">Búsqueda Exámenes</a>
+                                <a class="nav-link" href="{{ route('examenes.index') }}">
+                                    <i class="bi bi-search me-1"></i>Búsqueda Exámenes
+                                </a>
                             </li>
                             @hasrole('admin')
                                 <li class="nav-item">
@@ -177,7 +181,7 @@
                     </ul>
 
                     <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav ms-auto align-items-center">
                         <!-- Authentication Links -->
                         @guest
                             @if (Route::has('login'))
@@ -193,15 +197,40 @@
                             @endif
                         @else
                             <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
+                                @php
+                                    // Detección flexible del nombre del Rol (Spatie, propiedad directa o relación)
+                                    $rolNombre = method_exists(Auth::user(), 'getRoleNames') 
+                                        ? Auth::user()->getRoleNames()->first() 
+                                        : (Auth::user()->role ?? Auth::user()->roles->first()->name ?? null);
+                                @endphp
+
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center gap-2 py-1" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    <!-- Avatar / Icono de Usuario -->
+                                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.85rem; background-color: var(--clinical-light-blue); color: var(--clinical-blue);">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                    </div>
+
+                                    <div class="d-flex flex-column text-start" style="line-height: 1.1;">
+                                        <span class="fw-bold text-dark" style="font-size: 0.88rem;">{{ Auth::user()->name }}</span>
+                                        @if($rolNombre)
+                                            <span class="badge rounded-pill text-uppercase mt-1" style="font-size: 0.65rem; background-color: var(--clinical-light-blue); color: var(--clinical-blue); border: 1px solid #bae6fd; width: fit-content;">
+                                                {{ $rolNombre }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </a>
 
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
+                                <div class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="navbarDropdown">
+                                    <div class="dropdown-header text-muted small fw-semibold">
+                                        Sesión iniciada como: <br>
+                                        <strong class="text-dark">{{ Auth::user()->email }}</strong>
+                                    </div>
+                                    <div class="dropdown-divider"></div>
+                                    
+                                    <a class="dropdown-item text-danger fw-semibold" href="{{ route('logout') }}"
+                                    onclick="event.preventDefault();
+                                                    document.getElementById('logout-form').submit();">
+                                        🚪 {{ __('Cerrar Sesión') }}
                                     </a>
 
                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
