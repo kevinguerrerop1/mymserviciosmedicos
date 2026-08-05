@@ -162,7 +162,7 @@ class ExamenController extends Controller
             \App\Models\ComentarioExamen::create([
                 'examen_id'  => $examen->id,
                 'user_id'    => auth()->id(),
-                'comentario' => "🔄 Estado actualizado de '{$estadoAnterior}' a '{$request->estado}'.",
+                'comentario' => "Estado actualizado de '{$estadoAnterior}' a '{$request->estado}'.",
                 'tipo'       => 'sistema',
             ]);
         }
@@ -172,7 +172,7 @@ class ExamenController extends Controller
             \App\Models\ComentarioExamen::create([
                 'examen_id'  => $examen->id,
                 'user_id'    => auth()->id(),
-                'comentario' => "📄 Se adjuntó el Informe Diagnóstico Oficial (PDF).",
+                'comentario' => "Se adjuntó el Informe Diagnóstico Oficial (PDF).",
                 'tipo'       => 'sistema',
             ]);
         }
@@ -182,7 +182,7 @@ class ExamenController extends Controller
             \App\Models\ComentarioExamen::create([
                 'examen_id'  => $examen->id,
                 'user_id'    => auth()->id(),
-                'comentario' => "📸 Se agregaron {$imagenesSubidas} nueva(s) imagen(es) al expediente.",
+                'comentario' => "Se agregaron {$imagenesSubidas} nueva(s) imagen(es) al expediente.",
                 'tipo'       => 'sistema',
             ]);
         }
@@ -220,7 +220,7 @@ class ExamenController extends Controller
         \App\Models\ComentarioExamen::create([
             'examen_id'  => $examen->id,
             'user_id'    => auth()->id(),
-            'comentario' => "🔓 EXPEDIENTE REABIERTO por Administrador. Estado devuelto a 'EN ESPERA INFORME COMPLEMENTARIO'. Motivo: {$request->motivo}",
+            'comentario' => "EXPEDIENTE REABIERTO por Administrador. Estado devuelto a 'EN ESPERA INFORME COMPLEMENTARIO'. Motivo: {$request->motivo}",
             'tipo'       => 'sistema',
         ]);
 
