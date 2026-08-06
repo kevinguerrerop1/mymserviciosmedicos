@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\ComentarioExamen;
 use Illuminate\Support\Facades\DB;
+use App\Models\Medico;
 
 class ExamenController extends Controller
 {
@@ -39,8 +40,9 @@ class ExamenController extends Controller
         $laboratorios = Laboratorio::all();
         $tiposExamen = TipoExamen::all();
         $patologos = User::role('patologo')->get();
+        $medicos = Medico::orderBy('nombre', 'asc')->get();
 
-        return view('examenes.index', compact('examenes', 'laboratorios', 'tiposExamen', 'patologos'));
+        return view('examenes.index', compact('examenes', 'laboratorios', 'tiposExamen', 'patologos', 'medicos'));
     }
 
     // El Administrador crea y asigna el examen

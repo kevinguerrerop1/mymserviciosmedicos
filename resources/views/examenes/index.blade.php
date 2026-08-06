@@ -29,7 +29,12 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label text-muted small fw-bold">MÉDICO SOLICITANTE</label>
-                <input type="text" name="medico_solicitante" class="form-control" required placeholder="Dr. González">
+                <select name="medico_solicitante" class="form-select" required>
+                    <option value="">Seleccione Médico...</option>
+                    @foreach($medicos as $m)
+                        <option value="{{ $m->nombre }}">{{ $m->nombre }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="col-md-3">
                 <label class="form-label text-muted small fw-bold">TIPO DE EXAMEN</label>

@@ -176,6 +176,10 @@
                                 <li class="nav-item">
                                     <a class="nav-link" href="{{ route('tipos.index') }}">Tipos de Examen</a>
                                 </li>
+                                <!-- ENLACE AL MANTENEDOR DE MÉDICOS -->
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('medicos.index') }}">Médicos</a>
+                                </li>
                             @endhasrole
                         @endauth
                     </ul>
@@ -198,7 +202,7 @@
                         @else
                             <li class="nav-item dropdown">
                                 @php
-                                    // Detección flexible del nombre del Rol (Spatie, propiedad directa o relación)
+                                    // Detección flexible del nombre del Rol
                                     $rolNombre = method_exists(Auth::user(), 'getRoleNames') 
                                         ? Auth::user()->getRoleNames()->first() 
                                         : (Auth::user()->role ?? Auth::user()->roles->first()->name ?? null);

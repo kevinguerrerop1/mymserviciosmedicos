@@ -7,6 +7,7 @@ use App\Http\Controllers\LaboratorioController;
 use App\Http\Controllers\TipoExamenController;
 use App\Http\Controllers\ComentarioExamenController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\MedicoController;
 
 Auth::routes();
 
@@ -40,6 +41,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/usuarios', [UserController::class, 'index'])->name('usuarios.index');
         Route::post('/usuarios', [UserController::class, 'store'])->name('usuarios.store');
         Route::post('examenes/{examen}/reabrir', [ExamenController::class, 'reabrir'])->name('examenes.reabrir');
+        Route::resource('medicos', MedicoController::class)->except(['create', 'edit', 'show']);
     });
 
     // Comentarios
