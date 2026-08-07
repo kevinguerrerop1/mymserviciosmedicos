@@ -2,6 +2,9 @@
 
 @section('content')
 
+<!-- Estilos de Tom Select -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
 @hasrole('admin')
 <!-- Panel para Asignar / Registrar Nuevo Examen -->
 <div class="card mb-4">
@@ -25,17 +28,21 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label text-muted small fw-bold">RUT PACIENTE</label>
-                <input type="text" name="paciente_rut" class="form-control" required placeholder="12.345.678-9">
+                <!-- ID para formateo dinámico de RUT -->
+                <input type="text" id="paciente_rut" name="paciente_rut" class="form-control" maxlength="12" required placeholder="12.345.678-9">
             </div>
+
+            <!-- MÉDICO SOLICITANTE CON BUSCADOR -->
             <div class="col-md-3">
                 <label class="form-label text-muted small fw-bold">MÉDICO SOLICITANTE</label>
-                <select name="medico_solicitante" class="form-select" required>
-                    <option value="">Seleccione Médico...</option>
+                <select id="select-medico" name="medico_solicitante" required>
+                    <option value="">Buscar Médico...</option>
                     @foreach($medicos as $m)
                         <option value="{{ $m->nombre }}">{{ $m->nombre }}</option>
                     @endforeach
                 </select>
             </div>
+
             <div class="col-md-3">
                 <label class="form-label text-muted small fw-bold">TIPO DE EXAMEN</label>
                 <select name="tipo_examen_id" class="form-select" required>
@@ -86,7 +93,7 @@
                             <th style="width: 12%;">FECHA TOMA</th>
                             <th style="width: 20%;">NOMBRE PACIENTE</th>
                             <th style="width: 13%;">RUT</th>
-                            <th style="width: 18%;">PATÓLOGO</th> <!-- COLUMNA AGREGADA -->
+                            <th style="width: 18%;">PATÓLOGO</th>
                             <th style="width: 17%;">ESTADO</th>
                             <th style="width: 10%;">ACCIÓN</th>
                         </tr>
@@ -95,7 +102,7 @@
                             <th class="p-2"><input type="text" name="correlativo" value="{{ request('correlativo') }}" class="form-control form-control-sm"></th>
                             <th class="p-2"><input type="date" name="fecha_toma" value="{{ request('fecha_toma') }}" class="form-control form-control-sm"></th>
                             <th class="p-2"><input type="text" name="paciente" value="{{ request('paciente') }}" class="form-control form-control-sm"></th>
-                            <th class="p-2"><input type="text" name="rut" value="{{ request('rut') }}" class="form-control form-control-sm"></th>
+                            <th class="p-2"><input type="text" id="filtro_rut" name="rut" value="{{ request('rut') }}" class="form-control form-control-sm" placeholder="RUT"></th>
                             
                             <!-- FILTRO SLOT PATÓLOGO -->
                             <th class="p-2">
@@ -129,7 +136,6 @@
                             <td class="fw-semibold text-dark">{{ $ex->paciente_nombre }}</td>
                             <td><code>{{ $ex->paciente_rut }}</code></td>
                             
-                            <!-- DATO PATÓLOGO ASIGNADO -->
                             <td>
                                 @if($ex->patologo)
                                     <span class="badge bg-light text-dark border">
@@ -166,4 +172,56 @@
         </form>
     </div>
 </div>
+
+<!-- JS Tom Select y Formateador RUT -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // 1. Inicializar Buscador de Médicos (Tom Select)
+        const elMedico = document.getElementById('select-medico');
+        if (elMedico) {
+            new TomSelect('#select-medico', {
+                create: false,
+                sortField: { field: "text", direction: "asc" },
+                placeholder: "Escriba para buscar médico..."
+            });
+        }
+
+        // 2. Función Formateadora de RUT Chileno
+        function formatearRut(rut) {
+            // Limpiar puntos y guiones
+            let valor = rut.value.replace(/[^0-9kK]/g, '').toUpperCase();
+            
+            if (valor.length <= 1) {
+                rut.value = valor;
+                return;
+            }
+
+            let cuerpo = valor.slice(0, -1);
+            let dv = valor.slice(-1);
+
+            // Formatear cuerpo con puntos
+            cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+            rut.value = `${cuerpo}-${dv}`;
+        }
+
+        // Aplicar formateador al input de registro de paciente
+        const inputRut = document.getElementById('paciente_rut');
+        if (inputRut) {
+            inputRut.addEventListener('input', function() {
+                formatearRut(this);
+            });
+        }
+
+        // Aplicar formateador al slot de filtro en la tabla
+        const inputFiltroRut = document.getElementById('filtro_rut');
+        if (inputFiltroRut) {
+            inputFiltroRut.addEventListener('input', function() {
+                formatearRut(this);
+            });
+        }
+    });
+</script>
 @endsection

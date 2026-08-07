@@ -61,12 +61,30 @@ class ExamenController extends Controller
         // Ejecutamos dentro de una transacción para garantizar integridad de datos
         $examen = DB::transaction(function () use ($request) {
             
-            // Obtener el siguiente ID que asignará la BD
-            $siguienteId = (Examen::max('id') ?? 0) + 1;
+            // 1. Obtener los 2 dígitos del año actual (ej: "26" para el año 2026)
+            $anioActual = date('y'); 
+            $prefijo    = $anioActual . '-';
 
-            // 1. Crear el examen asignando directamente el ID como correlativo
+            // 2. Buscar el último examen registrado en este mismo año
+            $ultimoExamenAnio = Examen::where('numero_correlativo', 'LIKE', "{$prefijo}%")
+                ->latest('id')
+                ->first();
+
+            if ($ultimoExamenAnio) {
+                // Extraer el número después del guión y sumar 1
+                $partes = explode('-', $ultimoExamenAnio->numero_correlativo);
+                $siguienteNumero = ((int) end($partes)) + 1;
+            } else {
+                // Si es el primer examen registrado en el año actual, inicia en 1
+                $siguienteNumero = 1;
+            }
+
+            // 3. Formatear el correlativo compuesto (ej: "26-1")
+            $correlativoFormateado = $prefijo . $siguienteNumero;
+
+            // 4. Crear el examen asignando el correlativo formateado
             $nuevoExamen = Examen::create([
-                'numero_correlativo' => $siguienteId,
+                'numero_correlativo' => $correlativoFormateado,
                 'fecha_toma'         => $request->fecha_toma,
                 'fecha_recepcion'    => $request->fecha_recepcion,
                 'paciente_nombre'    => $request->paciente_nombre,
@@ -78,11 +96,11 @@ class ExamenController extends Controller
                 'estado'             => 'PENDIENTE',
             ]);
 
-            // 2. Registro inicial automático en la trazabilidad
+            // 5. Registro inicial automático en la trazabilidad
             ComentarioExamen::create([
-                'examen_id'  => $nuevoExamen->id, // <--- Corregido: Usamos la variable $nuevoExamen
+                'examen_id'  => $nuevoExamen->id,
                 'user_id'    => auth()->id(),
-                'comentario' => "📥 Registro de examen creado e ingresado al sistema de trazabilidad.",
+                'comentario' => "📥 Registro de examen creado e ingresado con correlativo #{$correlativoFormateado}.",
                 'tipo'       => 'sistema',
             ]);
 
