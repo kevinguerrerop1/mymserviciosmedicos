@@ -15,7 +15,7 @@ class ComentarioExamen extends Model
         'examen_id',
         'user_id',
         'comentario',
-        'tipo', 
+        'tipo',
     ];
 
     public function user()

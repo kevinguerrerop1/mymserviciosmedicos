@@ -8,6 +8,7 @@ use App\Http\Controllers\TipoExamenController;
 use App\Http\Controllers\ComentarioExamenController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MedicoController;
+use App\Http\Controllers\ReporteController;
 
 Auth::routes();
 
@@ -25,15 +26,12 @@ Route::middleware(['auth'])->group(function () {
 
     // Mantenedores (Admin)
     Route::middleware(['role:admin'])->group(function () {
+
+        // RUTAS DE LABORATORIOS
         Route::get('/laboratorios', [LaboratorioController::class, 'index'])->name('laboratorios.index');
         Route::post('/laboratorios', [LaboratorioController::class, 'store'])->name('laboratorios.store');
 
-        Route::get('/tipos-examen', [TipoExamenController::class, 'index'])->name('tipos.index');
-        Route::post('/tipos-examen', [TipoExamenController::class, 'store'])->name('tipos.store');
-
-        Route::get('/laboratorios', [LaboratorioController::class, 'index'])->name('laboratorios.index');
-        Route::post('/laboratorios', [LaboratorioController::class, 'store'])->name('laboratorios.store');
-
+        // RUTAS DE TIPOS DE EXAMEN
         Route::get('/tipos-examen', [TipoExamenController::class, 'index'])->name('tipos.index');
         Route::post('/tipos-examen', [TipoExamenController::class, 'store'])->name('tipos.store');
 
@@ -42,6 +40,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/usuarios', [UserController::class, 'store'])->name('usuarios.store');
         Route::post('examenes/{examen}/reabrir', [ExamenController::class, 'reabrir'])->name('examenes.reabrir');
         Route::resource('medicos', MedicoController::class)->except(['create', 'edit', 'show']);
+
+        // RUTAS DE REPORTES
+        Route::get('reportes', [ReporteController::class, 'index'])->name('reportes.index');
     });
 
     // Comentarios

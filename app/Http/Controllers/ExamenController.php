@@ -15,9 +15,12 @@ use App\Models\Medico;
 
 class ExamenController extends Controller
 {
+
     // Listado general filtrado según el rol
     public function index(Request $request)
     {
+
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $query = Examen::with(['laboratorio', 'patologo', 'tipoExamen']);
 
@@ -60,9 +63,9 @@ class ExamenController extends Controller
 
         // Ejecutamos dentro de una transacción para garantizar integridad de datos
         $examen = DB::transaction(function () use ($request) {
-            
+
             // 1. Obtener los 2 dígitos del año actual (ej: "26" para el año 2026)
-            $anioActual = date('y'); 
+            $anioActual = date('y');
             $prefijo    = $anioActual . '-';
 
             // 2. Buscar el último examen registrado en este mismo año
@@ -210,7 +213,7 @@ class ExamenController extends Controller
         return redirect()->back()->with('success', 'Examen actualizado y registrado en la línea de tiempo con éxito.');
     }
 
-    
+
 
     // Descarga directa del Informe
     public function descargarInforme(Examen $examen)
@@ -222,6 +225,7 @@ class ExamenController extends Controller
 
     private function validarAcceso(Examen $examen)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         if ($user->hasRole('patologo') && $examen->patologo_id !== $user->id) abort(403);
         if ($user->hasRole('laboratorio') && $examen->laboratorio_id !== $user->laboratorio_id) abort(403);
