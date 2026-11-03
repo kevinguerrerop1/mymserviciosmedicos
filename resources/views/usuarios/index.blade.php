@@ -5,7 +5,9 @@
         <!-- Formulario para Registrar Nuevo Usuario -->
         <div class="col-md-4">
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-primary text-white fw-bold">Registrar Nuevo Usuario</div>
+                <div class="card-header bg-primary text-white fw-bold d-flex align-items-center gap-2">
+                    <i class="bi bi-person-plus"></i> Registrar Nuevo Usuario
+                </div>
                 <div class="card-body bg-white">
                     <form action="{{ route('usuarios.store') }}" method="POST">
                         @csrf
@@ -45,7 +47,9 @@
                             </select>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100 fw-bold">Crear Usuario</button>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">
+                            <i class="bi bi-check2-circle me-1"></i> Crear Usuario
+                        </button>
                     </form>
                 </div>
             </div>
@@ -54,24 +58,32 @@
         <!-- Tabla de Usuarios Registrados -->
         <div class="col-md-8">
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-secondary text-white fw-bold">Usuarios del Sistema</div>
+                <div
+                    class="card-header bg-secondary text-white fw-bold d-flex justify-content-between align-items-center py-2 px-3">
+                    <span class="d-flex align-items-center gap-2">
+                        <i class="bi bi-people"></i> Usuarios del Sistema
+                    </span>
+                    <span class="badge bg-light text-secondary border fw-semibold">
+                        {{ $usuarios->count() }} Registrados
+                    </span>
+                </div>
                 <div class="card-body p-0 bg-white">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle text-center mb-0">
+                        <table class="table table-hover align-middle mb-0 text-center">
                             <thead class="bg-light">
                                 <tr>
-                                    <th style="width: 25%;" class="text-start ps-3">Nombre</th>
-                                    <th style="width: 25%;">Email</th>
+                                    <th style="width: 28%;" class="text-start ps-3">Nombre</th>
+                                    <th style="width: 25%;" class="text-start">Email</th>
                                     <th style="width: 15%;">Rol</th>
-                                    <th style="width: 20%;">Laboratorio</th>
-                                    <th style="width: 15%;">Acciones</th>
+                                    <th style="width: 22%;" class="text-start">Laboratorio</th>
+                                    <th style="width: 10%;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($usuarios as $u)
                                     <tr>
                                         <td class="text-start ps-3 fw-bold text-dark">{{ $u->name }}</td>
-                                        <td><small class="text-muted">{{ $u->email }}</small></td>
+                                        <td class="text-start text-muted small">{{ $u->email }}</td>
                                         <td>
                                             @php $rol = $u->roles->first()->name ?? null; @endphp
                                             @if ($rol === 'admin')
@@ -82,34 +94,37 @@
                                                 <span class="badge bg-info text-dark">LABORATORIO</span>
                                             @endif
                                         </td>
-                                        <td>
-                                            <span class="badge bg-light text-dark border">
-                                                {{ $u->laboratorio ? $u->laboratorio->nombre : 'Sin asignar' }}
+                                        <td class="text-start">
+                                            <span class="text-muted small">
+                                                {{ $u->laboratorio ? $u->laboratorio->nombre : '-' }}
                                             </span>
                                         </td>
                                         <td>
-                                            <!-- Botón Editar Modal -->
-                                            <button class="btn btn-sm btn-outline-primary fw-bold px-2"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#modalEditarUsuario{{ $u->id }}"
-                                                title="Editar Rápido">
-                                                Editar
-                                            </button>
+                                            <div class="d-inline-flex align-items-center gap-1">
+                                                <!-- Botón Editar Modal -->
+                                                <button type="button"
+                                                    class="btn btn-sm btn-light border text-primary px-2 py-1"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalEditarUsuario{{ $u->id }}"
+                                                    title="Editar usuario">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
 
-                                            <!-- Dar de Baja / Eliminar -->
-                                            @if (auth()->id() !== $u->id)
-                                                <form action="{{ route('usuarios.destroy', $u->id) }}" method="POST"
-                                                    class="d-inline"
-                                                    onsubmit="return confirm('¿Seguro que deseas dar de baja al usuario {{ $u->name }}?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
-                                                        class="btn btn-sm btn-outline-danger fw-bold px-2"
-                                                        title="Dar de baja">
-                                                        Baja
-                                                    </button>
-                                                </form>
-                                            @endif
+                                                <!-- Dar de Baja / Eliminar -->
+                                                @if (auth()->id() !== $u->id)
+                                                    <form action="{{ route('usuarios.destroy', $u->id) }}" method="POST"
+                                                        class="m-0 p-0"
+                                                        onsubmit="return confirm('¿Seguro que deseas dar de baja al usuario {{ $u->name }}?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                            class="btn btn-sm btn-light border text-danger px-2 py-1"
+                                                            title="Dar de baja">
+                                                            <i class="bi bi-trash3"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
 
@@ -122,8 +137,10 @@
                                                     @csrf
                                                     @method('PUT')
                                                     <div class="modal-header bg-light">
-                                                        <h5 class="modal-title fs-6 fw-bold text-primary">Editar Usuario:
-                                                            {{ $u->name }}</h5>
+                                                        <h5
+                                                            class="modal-title fs-6 fw-bold text-primary d-flex align-items-center gap-2">
+                                                            <i class="bi bi-pencil-square"></i> Editar: {{ $u->name }}
+                                                        </h5>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                             aria-label="Cerrar"></button>
                                                     </div>
