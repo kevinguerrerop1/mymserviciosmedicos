@@ -36,6 +36,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/tipos-examen', [TipoExamenController::class, 'store'])->name('tipos.store');
 
         // RUTAS DE USUARIOS
+        Route::resource('usuarios', UserController::class);
         Route::get('/usuarios', [UserController::class, 'index'])->name('usuarios.index');
         Route::post('/usuarios', [UserController::class, 'store'])->name('usuarios.store');
         Route::post('examenes/{examen}/reabrir', [ExamenController::class, 'reabrir'])->name('examenes.reabrir');
