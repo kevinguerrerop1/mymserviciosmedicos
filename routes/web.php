@@ -44,6 +44,9 @@ Route::middleware(['auth'])->group(function () {
 
         // RUTAS DE REPORTES
         Route::get('reportes', [ReporteController::class, 'index'])->name('reportes.index');
+        
+        // Ruta exclusiva para que el usuario autenticado cambie su clave
+        Route::put('/perfil/cambiar-password', [UserController::class, 'updatePassword'])->name('perfil.password.update');
     });
 
     // Comentarios

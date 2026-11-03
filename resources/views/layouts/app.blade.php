@@ -17,6 +17,9 @@
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
+    <!-- Bootstrap Icons CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <style>
@@ -49,7 +52,16 @@
         .nav-link {
             color: #475569 !important;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.5rem 0.85rem !important;
             transition: color 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .nav-link i {
+            font-size: 1.05rem;
         }
 
         .nav-link:hover,
@@ -195,8 +207,8 @@
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm py-2">
             <div class="container">
                 <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ url('/') }}">
-                    <span>🏥</span>
-                    <span>{{ config('app.name', 'Laravel') }}</span>
+                    <i class="bi bi-hospital fs-4 text-primary"></i>
+                    <span>{{ config('app.name', 'Trazabilidad') }}</span>
                 </a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -207,30 +219,56 @@
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar (ENLACES DEL SISTEMA) -->
-                    <ul class="navbar-nav me-auto">
+                    <ul class="navbar-nav me-auto align-items-center">
                         @auth
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('examenes.index') }}">
-                                    <i class="bi bi-search me-1"></i>Búsqueda Exámenes
+                                    <i class="bi bi-search"></i> Búsqueda Exámenes
                                 </a>
                             </li>
+
                             @hasrole('admin')
                                 <li class="nav-item">
                                     <a class="nav-link" href="{{ route('reportes.index') }}">
-                                        📊 Reportes
+                                        <i class="bi bi-bar-chart-line"></i> Reportes
                                     </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('usuarios.index') }}">Usuarios</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('laboratorios.index') }}">Laboratorios</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('tipos.index') }}">Tipos de Examen</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('medicos.index') }}">Médicos</a>
+
+                                <!-- Dropdown Mantenedores de Catálogo -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="mantenedoresDropdown" role="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-sliders"></i> Mantenedores
+                                    </a>
+                                    <ul class="dropdown-menu shadow-sm border-0" aria-labelledby="mantenedoresDropdown">
+                                        <li>
+                                            <a class="dropdown-item py-2 d-flex align-items-center gap-2"
+                                                href="{{ route('usuarios.index') }}">
+                                                <i class="bi bi-people text-muted"></i> Usuarios
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-2 d-flex align-items-center gap-2"
+                                                href="{{ route('laboratorios.index') }}">
+                                                <i class="bi bi-building text-muted"></i> Laboratorios
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-2 d-flex align-items-center gap-2"
+                                                href="{{ route('tipos.index') }}">
+                                                <i class="bi bi-virus text-muted"></i> Tipos de Examen
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-2 d-flex align-items-center gap-2"
+                                                href="{{ route('medicos.index') }}">
+                                                <i class="bi bi-person-badge text-muted"></i> Médicos
+                                            </a>
+                                        </li>
+                                    </ul>
                                 </li>
                             @endhasrole
                         @endauth
@@ -238,23 +276,25 @@
 
                     <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ms-auto align-items-center">
-                        <!-- Authentication Links -->
                         @guest
                             @if (Route::has('login'))
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                    <a class="nav-link" href="{{ route('login') }}">
+                                        <i class="bi bi-box-arrow-in-right"></i> {{ __('Login') }}
+                                    </a>
                                 </li>
                             @endif
 
                             @if (Route::has('register'))
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                    <a class="nav-link" href="{{ route('register') }}">
+                                        <i class="bi bi-person-plus"></i> {{ __('Register') }}
+                                    </a>
                                 </li>
                             @endif
                         @else
                             <li class="nav-item dropdown">
                                 @php
-                                    // Detección flexible del nombre del Rol
                                     $rolNombre = method_exists(Auth::user(), 'getRoleNames')
                                         ? Auth::user()->getRoleNames()->first()
                                         : Auth::user()->role ?? (Auth::user()->roles->first()->name ?? null);
@@ -263,9 +303,9 @@
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center gap-2 py-1"
                                     href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                                     aria-expanded="false" v-pre>
-                                    <!-- Avatar / Icono de Usuario -->
-                                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold"
-                                        style="width: 32px; height: 32px; font-size: 0.85rem; background-color: var(--clinical-light-blue); color: var(--clinical-blue);">
+
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                        style="width: 34px; height: 34px; font-size: 0.85rem; background-color: var(--clinical-light-blue); color: var(--clinical-blue); border: 1px solid #bae6fd;">
                                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                                     </div>
 
@@ -289,13 +329,22 @@
                                     </div>
                                     <div class="dropdown-divider"></div>
 
-                                    <a class="dropdown-item text-danger fw-semibold" href="{{ route('logout') }}"
-                                        onclick="event.preventDefault();
-                                                    document.getElementById('logout-form').submit();">
-                                        🚪 {{ __('Cerrar Sesión') }}
+                                    <!-- NUEVA OPCIÓN: CAMBIAR CONTRASEÑA -->
+                                    <a class="dropdown-item text-secondary fw-semibold d-flex align-items-center gap-2"
+                                        href="#" data-bs-toggle="modal" data-bs-target="#modalCambiarPassword">
+                                        <i class="bi bi-key"></i> Cambiar Contraseña
                                     </a>
 
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                    <div class="dropdown-divider"></div>
+
+                                    <a class="dropdown-item text-danger fw-semibold d-flex align-items-center gap-2"
+                                        href="{{ route('logout') }}"
+                                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="bi bi-box-arrow-right"></i> {{ __('Cerrar Sesión') }}
+                                    </a>
+
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                        class="d-none">
                                         @csrf
                                     </form>
                                 </div>
@@ -308,17 +357,22 @@
 
         <main class="py-4">
             <div class="container">
-                <!-- Alertas de Sistema -->
                 @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2"
+                        role="alert">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>{{ session('success') }}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"
+                            aria-label="Close"></button>
                     </div>
                 @endif
                 @if (session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2"
+                        role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div>{{ session('error') }}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"
+                            aria-label="Close"></button>
                     </div>
                 @endif
 
@@ -326,6 +380,56 @@
             </div>
         </main>
     </div>
+    @auth
+        <!-- Modal Cambiar Contraseña Personal -->
+        <div class="modal fade" id="modalCambiarPassword" tabindex="-1" aria-labelledby="modalCambiarPasswordLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <form action="{{ route('perfil.password.update') }}" method="POST">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="modal-header bg-light">
+                            <h5 class="modal-title fs-6 fw-bold text-primary d-flex align-items-center gap-2"
+                                id="modalCambiarPasswordLabel">
+                                <i class="bi bi-shield-lock"></i> Modificar Mi Contraseña
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">CONTRASEÑA ACTUAL</label>
+                                <input type="password" name="current_password" class="form-control"
+                                    placeholder="••••••••" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">NUEVA CONTRASEÑA</label>
+                                <input type="password" name="password" class="form-control"
+                                    placeholder="Mínimo 6 caracteres" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">CONFIRMAR NUEVA CONTRASEÑA</label>
+                                <input type="password" name="password_confirmation" class="form-control"
+                                    placeholder="Repite la nueva contraseña" required>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary btn-sm"
+                                data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary btn-sm fw-bold">Guardar Nueva
+                                Contraseña</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endauth
 </body>
 
 </html>

@@ -94,4 +94,23 @@ class UserController extends Controller
 
         return redirect()->route('usuarios.index')->with('success', 'Usuario dado de baja exitosamente.');
     }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password'         => ['required', 'string', 'min:6', 'confirmed'],
+        ], [
+            'current_password.current_password' => 'La contraseña actual no coincide con nuestros registros.',
+            'password.confirmed'                => 'La confirmación de la nueva contraseña no coincide.',
+            'password.min'                      => 'La nueva contraseña debe tener al menos 6 caracteres.',
+        ]);
+
+        $user = auth()->user();
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->back()->with('success', 'Tu contraseña ha sido actualizada con éxito.');
+    }
 }
