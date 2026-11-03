@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
         // RUTAS DE LABORATORIOS
         Route::get('/laboratorios', [LaboratorioController::class, 'index'])->name('laboratorios.index');
         Route::post('/laboratorios', [LaboratorioController::class, 'store'])->name('laboratorios.store');
+        Route::resource('laboratorios', LaboratorioController::class)->except(['create', 'show', 'edit']);
 
         // RUTAS DE TIPOS DE EXAMEN
         Route::get('/tipos-examen', [TipoExamenController::class, 'index'])->name('tipos.index');
