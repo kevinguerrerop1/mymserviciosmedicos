@@ -7,6 +7,9 @@
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/png" href="{{ asset('img/logo-mym.png') }}">
+    <link rel="shortcut icon" href="{{ asset('img/logo-mym.png') }}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{{ asset('img/logo-mym.png') }}">
 
     <title>{{ config('app.name', 'Laravel') }} - Trazabilidad Anatomía Patológica</title>
 
@@ -285,23 +288,7 @@
 
                     <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ms-auto align-items-center">
-                        @guest
-                            @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">
-                                        <i class="bi bi-box-arrow-in-right"></i> {{ __('Login') }}
-                                    </a>
-                                </li>
-                            @endif
-
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">
-                                        <i class="bi bi-person-plus"></i> {{ __('Register') }}
-                                    </a>
-                                </li>
-                            @endif
-                        @else
+                        @auth
                             <li class="nav-item dropdown">
                                 @php
                                     $rolNombre = method_exists(Auth::user(), 'getRoleNames')
@@ -338,7 +325,6 @@
                                     </div>
                                     <div class="dropdown-divider"></div>
 
-                                    <!-- NUEVA OPCIÓN: CAMBIAR CONTRASEÑA -->
                                     <a class="dropdown-item text-secondary fw-semibold d-flex align-items-center gap-2"
                                         href="#" data-bs-toggle="modal" data-bs-target="#modalCambiarPassword">
                                         <i class="bi bi-key"></i> Cambiar Contraseña
@@ -358,7 +344,7 @@
                                     </form>
                                 </div>
                             </li>
-                        @endguest
+                        @endauth
                     </ul>
                 </div>
             </div>
