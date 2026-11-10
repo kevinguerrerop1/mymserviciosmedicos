@@ -9,8 +9,13 @@ use App\Http\Controllers\ComentarioExamenController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MedicoController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\FirmaController;
 
 Auth::routes();
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/generador-firma', [FirmaController::class, 'index'])->name('herramientas.firma');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', function () {

@@ -268,6 +268,15 @@
                                                 <i class="bi bi-person-badge text-muted"></i> Médicos
                                             </a>
                                         </li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-2 d-flex align-items-center gap-2"
+                                                href="{{ route('herramientas.firma') }}">
+                                                <i class="bi bi-pen text-muted"></i> Generador de Firma
+                                            </a>
+                                        </li>
                                     </ul>
                                 </li>
                             @endhasrole
