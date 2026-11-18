@@ -640,68 +640,116 @@
             <div class="modal fade" id="modalNotasExamen" tabindex="-1" aria-labelledby="modalNotasExamenLabel"
                 aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content card-custom border-0 shadow">
-                        <div class="modal-header bg-light border-bottom p-3 px-4">
-                            <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2 fs-6"
-                                id="modalNotasExamenLabel">
-                                <span>💬</span> Comentarios y Observaciones del Examen
-                            </h5>
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+
+                        <!-- ENCABEZADO -->
+                        <div class="modal-header border-bottom py-3 px-4 bg-white">
+                            <div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <h5 class="modal-title fw-bold text-dark fs-6 mb-0" id="modalNotasExamenLabel">
+                                        Comentarios y Observaciones del Examen
+                                    </h5>
+                                    <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1"
+                                        style="font-size: 0.75rem;">
+                                        {{ count($notasManuales) }}
+                                        {{ count($notasManuales) === 1 ? 'registro' : 'registros' }}
+                                    </span>
+                                </div>
+                                <small class="text-muted d-block mt-0.5" style="font-size: 0.78rem;">
+                                    Registro cronológico de aclaraciones y notas de laboratorio
+                                </small>
+                            </div>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                 aria-label="Close"></button>
                         </div>
 
-                        <div class="modal-body bg-white p-4">
-                            <!-- LISTADO DE NOTAS -->
-                            <div class="mb-4">
-                                <span class="info-label mb-3 d-block">HISTORIAL DE OBSERVACIONES</span>
+                        <!-- CUERPO DEL MODAL -->
+                        <div class="modal-body p-4 bg-light bg-opacity-50">
 
+                            <!-- SECCIÓN: HISTORIAL DE OBSERVACIONES -->
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-uppercase fw-semibold text-secondary"
+                                    style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                                    Historial de observaciones
+                                </span>
+                                @if (count($notasManuales) > 0)
+                                    <span class="text-muted" style="font-size: 0.75rem;">Orden cronológico</span>
+                                @endif
+                            </div>
+
+                            <!-- CONTENEDOR CON SCROLL (Evita que el modal se desborde con muchas notas) -->
+                            <div class="pe-1 mb-4" style="max-height: 280px; overflow-y: auto;">
                                 @forelse($notasManuales as $nota)
-                                    <div class="p-3 bg-light rounded-3 mb-2 border border-slate-200">
-                                        <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                            <span class="fw-bold text-dark small d-inline-flex align-items-center gap-1">
-                                                👤 {{ $nota->user->name ?? 'Usuario' }}
-                                            </span>
-                                            <span class="text-muted small" style="font-size: 0.78rem;">
-                                                {{ $nota->created_at->format('d/m/Y H:i') }}
-                                            </span>
+                                    <div class="card border-0 shadow-sm rounded-3 mb-2 bg-white">
+                                        <div class="card-body p-3">
+                                            <div
+                                                class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom border-light">
+                                                <!-- Identificador con iniciales del usuario (elegante y sin iconos) -->
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-inline-flex align-items-center justify-content-center"
+                                                        style="width: 26px; height: 26px; font-size: 0.72rem;">
+                                                        {{ strtoupper(substr($nota->user->name ?? 'U', 0, 2)) }}
+                                                    </div>
+                                                    <span class="fw-semibold text-dark small">
+                                                        {{ $nota->user->name ?? 'Usuario' }}
+                                                    </span>
+                                                </div>
+
+                                                <span class="text-muted" style="font-size: 0.75rem;">
+                                                    {{ $nota->created_at->format('d/m/Y · H:i') }}
+                                                </span>
+                                            </div>
+                                            <p class="mb-0 text-secondary small text-break" style="line-height: 1.5;">
+                                                {{ $nota->comentario }}
+                                            </p>
                                         </div>
-                                        <p class="mb-0 text-secondary small" style="line-height: 1.45;">
-                                            {{ $nota->comentario }}</p>
                                     </div>
                                 @empty
-                                    <div class="text-center text-muted py-4 bg-light rounded-3 border border-dashed">
-                                        <p class="mb-0 small">No hay comentarios u observaciones registradas para este
-                                            examen.</p>
+                                    <div class="text-center py-4 px-3 bg-white rounded-3 border border-dashed">
+                                        <p class="text-muted mb-0 small">
+                                            No hay comentarios u observaciones registradas para este examen.
+                                        </p>
                                     </div>
                                 @endforelse
                             </div>
 
-                            <hr class="my-4 text-muted opacity-25">
+                            <!-- SECCIÓN: NUEVA OBSERVACIÓN -->
+                            <div class="card border-0 shadow-sm rounded-3 bg-white p-3">
+                                <form action="{{ route('comentarios.store') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="examen_id" value="{{ $examen->id }}">
 
-                            <!-- FORMULARIO DE NUEVA OBSERVACIÓN -->
-                            <form action="{{ route('comentarios.store') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="examen_id" value="{{ $examen->id }}">
+                                    <label for="comentario" class="text-uppercase fw-semibold text-secondary mb-2 d-block"
+                                        style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                                        Nueva Observación
+                                    </label>
 
-                                <div class="mb-3">
-                                    <label for="comentario" class="info-label mb-2 d-block">Nueva Observación</label>
-                                    <textarea name="comentario" id="comentario" class="form-control rounded-3" rows="3"
-                                        placeholder="Escriba aquí cualquier aclaración sobre la muestra o notas del equipo médico..." required></textarea>
-                                </div>
+                                    <textarea name="comentario" id="comentario" class="form-control border-light-subtle rounded-3 small p-2.5 mb-3"
+                                        rows="3" placeholder="Escriba cualquier aclaración sobre la muestra o notas del equipo médico..."
+                                        style="resize: none;" required></textarea>
 
-                                <div class="text-end">
-                                    <button type="submit"
-                                        class="btn btn-primary btn-sm px-4 py-2 fw-semibold rounded-pill shadow-sm">
-                                        Guardar Comentario
-                                    </button>
-                                </div>
-                            </form>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted" style="font-size: 0.75rem;">
+                                            Quedará registrado con su usuario actual
+                                        </span>
+                                        <button type="submit"
+                                            class="btn btn-primary btn-sm px-4 py-2 fw-semibold rounded-pill shadow-sm">
+                                            Guardar Comentario
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
                         </div>
 
-                        <div class="modal-footer bg-light py-2 px-4 border-top">
-                            <button type="button" class="btn btn-secondary btn-sm px-3 rounded-pill"
-                                data-bs-dismiss="modal">Cerrar</button>
+                        <!-- PIE DE MODAL -->
+                        <div class="modal-footer bg-white py-2.5 px-4 border-top">
+                            <button type="button" class="btn btn-light btn-sm px-4 rounded-pill border text-secondary"
+                                data-bs-dismiss="modal">
+                                Cerrar
+                            </button>
                         </div>
+
                     </div>
                 </div>
             </div>
